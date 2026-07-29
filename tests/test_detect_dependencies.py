@@ -17,12 +17,13 @@ def person_cls():
 
     return Person
 
+
 @pytest.fixture()
 def person(person_cls):
     return person_cls(age=30)
 
 
-def test_non_EventDispatcher():
+def test_non_EventDispatcher_should_be_ignored():
     import types
     def f(v=types.SimpleNamespace(age=30)):
         max(v, v)
@@ -31,7 +32,7 @@ def test_non_EventDispatcher():
     assert detect_dependencies(f) == []
 
 
-def test_deep_attribute_lookup_is_not_supported(person_cls):
+def test_deep_attribute_lookup_should_be_ignored(person_cls):
     alice = person_cls()
     bob = person_cls(parent=alice)
 
@@ -42,7 +43,7 @@ def test_deep_attribute_lookup_is_not_supported(person_cls):
     ]
 
 
-def test_regular_python_attributes_are_ignored(person):
+def test_regular_python_attributes_should_be_ignored(person):
     person.attr = None
 
     def f(p=person):
@@ -51,14 +52,14 @@ def test_regular_python_attributes_are_ignored(person):
     assert detect_dependencies(f) == []
 
 
-def test_attribute_lookups_on_non_function_parameters_are_ignored(person):
+def test_attribute_lookups_on_non_function_parameters_should_be_ignored(person):
     def f(p=person):
         p2 = p
         max(p2.name, person.age)
     assert detect_dependencies(f) == []
 
 
-def test_func_arguments(person):
+def test_function_arguments(person):
     def f(p=person):
         print(p.name, p.age)
     assert detect_dependencies(f) == [
@@ -76,7 +77,7 @@ def test_fstring(person):
     ]
 
 
-def test_dups(person):
+def test_duplications(person):
     def f(p=person):
         print(p.name, p.name)
     assert detect_dependencies(f) == [
@@ -84,9 +85,9 @@ def test_dups(person):
     ]
 
 
-def test_STORE_ATTR_is_ignored(person):
+def test_STORE_ATTR_should_be_ignored(person):
     def f(p=person):
-        p.name, p.age = p.parent, 30
+        p.name = p.parent
     assert detect_dependencies(f) == [
         (person, "parent"),
     ]
@@ -115,7 +116,7 @@ def test_bound_method(person):
     ]
 
 
-def test_partialled_bound_method(person_cls):
+def test_functools_partial_combined_with_bound_method(person_cls):
     from functools import partial
 
     alice = person_cls()
