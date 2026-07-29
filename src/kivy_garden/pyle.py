@@ -1,4 +1,4 @@
-__all__ = ("immediate_rule", "throttle_rule", "debounce_rule")
+__all__ = ("immediate_reaction", "throttle_reaction", "debounce_reaction")
 
 from collections.abc import Callable
 import types
@@ -101,17 +101,17 @@ def detect_dependencies(
     return dependencies
 
 
-def immediate_rule(callback=None, *, trigger_on_activation=False):
+def immediate_reaction(callback=None, *, react_on_activate=False):
     if callback is None:
-        return partial(ImmediateRule, trigger_on_activation)
+        return partial(ImmediateReaction, react_on_activate)
     else:
-        return ImmediateRule(trigger_on_activation, callback)
+        return ImmediateReaction(react_on_activate, callback)
 
 
-class ImmediateRule:
-    def __init__(self, trigger_on_activation, callback):
+class ImmediateReaction:
+    def __init__(self, react_on_activate, callback):
         self._callback = callback
-        self.trigger_on_activation = trigger_on_activation
+        self.react_on_activate = react_on_activate
         self._deps = detect_dependencies(callback)
         self._unbind_uids = None
         self._active = False
@@ -122,7 +122,7 @@ class ImmediateRule:
         cb = self._callback
         self._unbind_uids = [owner.fbind(prop_name, cb) for owner, prop_name in self._deps]
         self._active = True
-        if self.trigger_on_activation:
+        if self.react_on_activate:
             cb(None, None)
 
     def __exit__(self, *args):
@@ -133,16 +133,16 @@ class ImmediateRule:
         self._active = False
 
 
-def throttle_rule(callback=None, *, trigger_on_activation=True, delay=-1):
+def throttle_reaction(callback=None, *, react_on_activate=True, delay=-1):
     if callback is None:
-        return partial(ThrottleRule, delay, trigger_on_activation)
+        return partial(ThrottleReaction, delay, react_on_activate)
     else:
-        return ThrottleRule(delay, trigger_on_activation, callback)
+        return ThrottleReaction(delay, react_on_activate, callback)
 
 
-class ThrottleRule:
-    def __init__(self, delay, trigger_on_activation, callback):
-        self.trigger_on_activation = trigger_on_activation
+class ThrottleReaction:
+    def __init__(self, delay, react_on_activate, callback):
+        self.react_on_activate = react_on_activate
         self._deps = detect_dependencies(callback)
         self._unbind_uids = None
         self._active = False
@@ -154,7 +154,7 @@ class ThrottleRule:
         t = self._trigger
         self._unbind_uids = [owner.fbind(prop_name, t) for owner, prop_name in self._deps]
         self._active = True
-        if self.trigger_on_activation:
+        if self.react_on_activate:
             t()
 
     def __exit__(self, *args):
@@ -166,16 +166,16 @@ class ThrottleRule:
         self._active = False
 
 
-def debounce_rule(callback=None, *, trigger_on_activation=True, delay=1):
+def debounce_reaction(callback=None, *, react_on_activate=True, delay=1):
     if callback is None:
-        return partial(DebounceRule, delay, trigger_on_activation)
+        return partial(DebounceReaction, delay, react_on_activate)
     else:
-        return DebounceRule(delay, trigger_on_activation, callback)
+        return DebounceReaction(delay, react_on_activate, callback)
 
 
-class DebounceRule:
-    def __init__(self, delay, trigger_on_activation, callback):
-        self.trigger_on_activation = trigger_on_activation
+class DebounceReaction:
+    def __init__(self, delay, react_on_activate, callback):
+        self.react_on_activate = react_on_activate
         self._deps = detect_dependencies(callback)
         self._unbind_uids = None
         self._active = False
@@ -188,7 +188,7 @@ class DebounceRule:
         f = self._wrapper
         self._unbind_uids = [owner.fbind(prop_name, f) for owner, prop_name in self._deps]
         self._active = True
-        if self.trigger_on_activation:
+        if self.react_on_activate:
             f()
 
     def __exit__(self, *args):

@@ -13,12 +13,12 @@ def size_cls():
 
 
 def test_no_arg(size_cls):
-    from kivy_garden.pyle import immediate_rule
+    from kivy_garden.pyle import immediate_reaction
 
     area = None
     size = size_cls(width=4, height=6)
 
-    @immediate_rule
+    @immediate_reaction
     def keep_updating_area(_1, _2, s=size):
         nonlocal area
         area = s.width * s.height
@@ -37,20 +37,20 @@ def test_no_arg(size_cls):
         assert area == 6
 
 
-@pytest.mark.parametrize("trigger_on_activation", [False, True])
-def test_trigger_on_activation(size_cls, trigger_on_activation):
-    from kivy_garden.pyle import immediate_rule
+@pytest.mark.parametrize("react_on_activate", [False, True])
+def test_react_on_activate(size_cls, react_on_activate):
+    from kivy_garden.pyle import immediate_reaction
 
     area = None
     size = size_cls(width=4, height=6)
 
-    @immediate_rule(trigger_on_activation=trigger_on_activation)
+    @immediate_reaction(react_on_activate=react_on_activate)
     def keep_updating_area(_1, _2, s=size):
         nonlocal area
         area = s.width * s.height
 
     with keep_updating_area:
-        if trigger_on_activation:
+        if react_on_activate:
             assert area == 24
         else:
             assert area is None
@@ -63,19 +63,19 @@ def test_trigger_on_activation(size_cls, trigger_on_activation):
     assert area == 6
 
     with keep_updating_area:
-        if trigger_on_activation:
+        if react_on_activate:
             assert area == 300
         else:
             assert area == 6
 
 
-@pytest.mark.parametrize("trigger_on_activation", [False, True])
-def test_reentering_should_raise_exception(size_cls, trigger_on_activation):
-    from kivy_garden.pyle import immediate_rule
+@pytest.mark.parametrize("react_on_activate", [False, True])
+def test_reentering_should_raise_exception(size_cls, react_on_activate):
+    from kivy_garden.pyle import immediate_reaction
 
     size = size_cls(width=4, height=6)
 
-    @immediate_rule(trigger_on_activation=trigger_on_activation)
+    @immediate_reaction(react_on_activate=react_on_activate)
     def cm(_1, _2, s=size):
         pass
 
