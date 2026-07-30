@@ -1,4 +1,7 @@
-__all__ = ("immediate_reaction", "throttle_reaction", "debounce_reaction")
+__all__ = (
+    "immediate_reaction", "throttle_reaction", "debounce_reaction",
+    "immediate_rule", "throttle_rule", "debounce_rule",
+)
 
 from collections.abc import Callable
 import types
@@ -203,3 +206,8 @@ class DebounceReaction:
     def _wrapper(trigger, *args):
         trigger.cancel()
         trigger()
+
+
+immediate_rule = immediate_reaction
+throttle_rule = throttle_reaction
+debounce_rule = debounce_reaction
