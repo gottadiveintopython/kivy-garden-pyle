@@ -48,7 +48,7 @@ from contextlib import ExitStack
 
 from kivy.graphics import Color, Rectangle
 
-from kivy_garden.pyle import throttle_rule
+from kivy_garden import pyle
 
 
 def add_solid_background(widget, *, color=(1., 1. , 1., .3)):
@@ -60,7 +60,7 @@ def add_solid_background(widget, *, color=(1., 1. , 1., .3)):
             defer(before.remove, Color(*color))
             defer(before.remove, rect := Rectangle(pos=widget.pos, size=widget.size))
 
-        @throttle_rule
+        @pyle.throttle_rule
         def sync_graphics(dt, rect=rect, w=widget):
             rect.pos = w.pos
             rect.size = w.size
@@ -70,7 +70,7 @@ def add_solid_background(widget, *, color=(1., 1. , 1., .3)):
 ```
 
 このようにバインディング周りのコードがスッキリします。
-またasyncライブラリを用いている場合はコルーチンの生存期間をそのまま効能期間とする、
+またasyncライブラリを用いている場合はasync関数として実装してコルーチンの生存期間をそのまま効能期間とする、
 次のような実装が良いかもしれません。
 
 ```python
@@ -79,7 +79,7 @@ from contextlib import ExitStack
 import asynckivy as ak
 from kivy.graphics import Color, Rectangle
 
-from kivy_garden.pyle import throttle_rule
+from kivy_garden import pyle
 
 
 async def enable_solid_background(widget, *, color=(1., 1. , 1., .3)):
@@ -94,7 +94,7 @@ async def enable_solid_background(widget, *, color=(1., 1. , 1., .3)):
             defer(before.remove, Color(*color))
             defer(before.remove, rect := Rectangle(pos=widget.pos, size=widget.size))
 
-        @throttle_rule
+        @pyle.throttle_rule
         def sync_graphics(dt, rect=rect, w=widget):
             rect.pos = w.pos
             rect.size = w.size
@@ -103,6 +103,42 @@ async def enable_solid_background(widget, *, color=(1., 1. , 1., .3)):
         await ak.sleep_forever()
 ```
 
+上記の例らにおける `sync_graphics` 関数は `@pyle.throttle_rule` で飾られた事によってコンテキストマネージャー(長いので以後はcmと略す)と化します。
+このcmが作られた段階ではまだバインディングは有効になっておらず、活動中(`__enter__`から`__exit__`まで)のみ有効になります。
+このcmは再帰的に`__enter__`できませんが再利用は可能です。
+
+```python
+# 再帰は駄目
+with sync_graphics:
+    with sync_graphics:
+        ...
+
+# 再利用は構わない
+with sync_graphics:
+    ...
+with sync_graphics:
+    ...
+```
+
+## どのようにして監視すべきKivyプロパティを検出するのか
+
+関数のバイトコードを解析しています。
+関数の **あらかじめ埋められた** 引数に`EventDispatcher`のインスタンスがある時、
+それに対するKivyプロパティの読み出し([LOAD_ATTR][LOAD_ATTR])があるとそれを監視対象とします。
+
+対応している "あらかじめ埋められた" 引数は以下の三種のみです。
+
+- `sync_graphics` の例のようなデフォルト引数(`w=widget`)
+- `functools.partial` で埋められた値
+- `obj.instance_method` で結び付けられた `self` 引数
+
+それ以外のやり方で引数を埋めても監視対象にはなりません。
+より詳しくは[test_detect_dependencies.py][test_detect_dependencies]を参照してください。
+
 ## そのた〜
 
 - `throttle` と　`debounce` という語に馴染みがない人は"throttle + debounce"で検索してください。
+
+
+[test_detect_dependencies]:https://github.com/gottadiveintopython/kivy-garden-pyle/blob/main/tests/test_detect_dependencies.py
+[LOAD_ATTR]:https://docs.python.org/3/library/dis.html#opcode-LOAD_ATTR
