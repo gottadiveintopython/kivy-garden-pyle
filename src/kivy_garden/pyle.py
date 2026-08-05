@@ -1,5 +1,4 @@
 __all__ = (
-    "immediate_reaction", "throttle_reaction", "debounce_reaction",
     "immediate_rule", "throttle_rule", "debounce_rule",
 )
 
@@ -104,14 +103,14 @@ def detect_dependencies(
     return dependencies
 
 
-def immediate_reaction(callback=None, *, react_on_activate=False):
+def immediate_rule(callback=None, *, react_on_activate=False):
     if callback is None:
-        return partial(ImmediateReaction, react_on_activate)
+        return partial(ImmediateRule, react_on_activate)
     else:
-        return ImmediateReaction(react_on_activate, callback)
+        return ImmediateRule(react_on_activate, callback)
 
 
-class ImmediateReaction:
+class ImmediateRule:
     def __init__(self, react_on_activate, callback):
         self._callback = callback
         self.react_on_activate = react_on_activate
@@ -136,14 +135,14 @@ class ImmediateReaction:
         self._active = False
 
 
-def throttle_reaction(callback=None, *, react_on_activate=True, delay=-1):
+def throttle_rule(callback=None, *, react_on_activate=True, delay=-1):
     if callback is None:
-        return partial(ThrottleReaction, delay, react_on_activate)
+        return partial(ThrottleRule, delay, react_on_activate)
     else:
-        return ThrottleReaction(delay, react_on_activate, callback)
+        return ThrottleRule(delay, react_on_activate, callback)
 
 
-class ThrottleReaction:
+class ThrottleRule:
     def __init__(self, delay, react_on_activate, callback):
         self.react_on_activate = react_on_activate
         self._deps = detect_dependencies(callback)
@@ -169,14 +168,14 @@ class ThrottleReaction:
         self._active = False
 
 
-def debounce_reaction(callback=None, *, react_on_activate=True, delay=1):
+def debounce_rule(callback=None, *, react_on_activate=True, delay=1):
     if callback is None:
-        return partial(DebounceReaction, delay, react_on_activate)
+        return partial(DebounceRule, delay, react_on_activate)
     else:
-        return DebounceReaction(delay, react_on_activate, callback)
+        return DebounceRule(delay, react_on_activate, callback)
 
 
-class DebounceReaction:
+class DebounceRule:
     def __init__(self, delay, react_on_activate, callback):
         self.react_on_activate = react_on_activate
         self._deps = detect_dependencies(callback)
@@ -206,8 +205,3 @@ class DebounceReaction:
     def _wrapper(trigger, *args):
         trigger.cancel()
         trigger()
-
-
-immediate_rule = immediate_reaction
-throttle_rule = throttle_reaction
-debounce_rule = debounce_reaction

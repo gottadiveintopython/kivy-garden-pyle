@@ -2,7 +2,7 @@ from contextlib import ExitStack
 
 from kivy.graphics import Color, Rectangle
 
-from kivy_garden.pyle import throttle_reaction
+from kivy_garden.pyle import throttle_rule
 
 
 def add_solid_background(widget, *, color=(1., 1. , 1., .3)):
@@ -17,7 +17,7 @@ def add_solid_background(widget, *, color=(1., 1. , 1., .3)):
             defer(before.remove, Color(*color))
             defer(before.remove, rect := Rectangle(pos=widget.pos, size=widget.size))
 
-        @throttle_reaction
+        @throttle_rule
         def sync_graphics(dt, rect=rect, w=widget):
             rect.pos = w.pos
             rect.size = w.size
