@@ -1,5 +1,7 @@
 import pytest
 
+from kivy_garden import pyle
+
 
 @pytest.fixture(scope="module")
 def size_cls():
@@ -80,16 +82,16 @@ def test_trigger_callback_on_activate(kivy_runner, size_cls, trigger_callback_on
 
 @pytest.mark.parametrize("trigger_callback_on_activate", [False, True])
 def test_reentering_should_raise_exception(kivy_runner, size_cls, trigger_callback_on_activate):
-    from kivy_garden.pyle import throttle_rule
+    from kivy_garden import pyle
 
     size = size_cls(width=4, height=6)
 
-    @throttle_rule(trigger_callback_on_activate=trigger_callback_on_activate)
+    @pyle.throttle_rule(trigger_callback_on_activate=trigger_callback_on_activate)
     def cm(dt, s=size):
         pass
 
     with cm:
-        with pytest.raises(Exception):
+        with pytest.raises(pyle.RecursiveActivationError):
             with cm:
                 pass
 

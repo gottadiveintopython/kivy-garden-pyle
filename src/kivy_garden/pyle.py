@@ -1,4 +1,5 @@
 __all__ = (
+    "RecursiveActivationError",
     "immediate_rule", "throttle_rule", "debounce_rule",
 )
 
@@ -10,6 +11,24 @@ from functools import partial
 
 from kivy._event import EventDispatcher
 from kivy.clock import Clock
+
+
+class RecursiveActivationError(Exception):
+    '''
+    Raised when a rule is recursively activated.
+
+    .. code-block::
+
+        from kivy_garden import pyle
+
+        @pyle.immediate_rule
+        def xxx(...):
+            ...
+
+        with xxx:
+            with xxx:  # raises RecursiveActivationError
+                ...
+    '''
 
 
 def _is_event_dispatcher(obj, _hasattr=hasattr) -> bool:
@@ -120,7 +139,7 @@ class ImmediateRule:
 
     def __enter__(self):
         if self._active:
-            raise Exception("The rule is already active.")
+            raise RecursiveActivationError
         cb = self._callback
         self._unbind_uids = [owner.fbind(prop_name, cb) for owner, prop_name in self._deps]
         self._active = True
@@ -152,7 +171,7 @@ class ThrottleRule:
 
     def __enter__(self):
         if self._active:
-            raise Exception("The rule is already active.")
+            raise RecursiveActivationError
         t = self._trigger
         self._unbind_uids = [owner.fbind(prop_name, t) for owner, prop_name in self._deps]
         self._active = True
@@ -186,7 +205,7 @@ class DebounceRule:
 
     def __enter__(self):
         if self._active:
-            raise Exception("The rule is already active.")
+            raise RecursiveActivationError
         f = self._wrapper
         self._unbind_uids = [owner.fbind(prop_name, f) for owner, prop_name in self._deps]
         self._active = True
