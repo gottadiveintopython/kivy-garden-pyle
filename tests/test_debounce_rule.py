@@ -27,9 +27,9 @@ def test_no_arg(kivy_runner, size_cls):
     with keep_updating_area:
         assert area is None
         af(dt=2)
-        assert area == 24
+        assert area is None
         size.width = 2
-        assert area == 24
+        assert area is None
         af(dt=2)
         assert area == 12
         size.height = 3
@@ -101,7 +101,7 @@ def test_debounce_behavior(kivy_runner, size_cls):
     area = None
     size = size_cls(width=4, height=6)
 
-    @debounce_rule(delay=1)
+    @debounce_rule(delay=1, trigger_callback_on_activate=True)
     def keep_updating_area(dt, s=size):
         nonlocal area
         area = s.width * s.height

@@ -135,7 +135,7 @@ class ImmediateRule:
         self._active = False
 
 
-def throttle_rule(callback=None, *, trigger_callback_on_activate=True, delay=-1):
+def throttle_rule(callback=None, *, trigger_callback_on_activate=False, delay=-1):
     if callback is None:
         return partial(ThrottleRule, delay, trigger_callback_on_activate)
     else:
@@ -168,7 +168,7 @@ class ThrottleRule:
         self._active = False
 
 
-def debounce_rule(callback=None, *, trigger_callback_on_activate=True, delay=1):
+def debounce_rule(callback=None, *, trigger_callback_on_activate=False, delay=1):
     if callback is None:
         return partial(DebounceRule, delay, trigger_callback_on_activate)
     else:
