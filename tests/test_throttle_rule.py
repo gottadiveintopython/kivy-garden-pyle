@@ -49,15 +49,15 @@ def test_no_arg(kivy_runner, size_cls):
     assert area == 6
 
 
-@pytest.mark.parametrize("react_on_activate", [False, True])
-def test_react_on_activate(kivy_runner, size_cls, react_on_activate):
+@pytest.mark.parametrize("trigger_callback_on_activate", [False, True])
+def test_trigger_callback_on_activate(kivy_runner, size_cls, trigger_callback_on_activate):
     from kivy_garden.pyle import throttle_rule
     af = kivy_runner.advance_frame
 
     area = None
     size = size_cls(width=4, height=6)
 
-    @throttle_rule(react_on_activate=react_on_activate)
+    @throttle_rule(trigger_callback_on_activate=trigger_callback_on_activate)
     def keep_updating_area(dt, s=size):
         nonlocal area
         area = s.width * s.height
@@ -65,12 +65,12 @@ def test_react_on_activate(kivy_runner, size_cls, react_on_activate):
     with keep_updating_area:
         assert area is None
         af()
-        if react_on_activate:
+        if trigger_callback_on_activate:
             assert area == 24
         else:
             assert area is None
         size.width = 2
-        if react_on_activate:
+        if trigger_callback_on_activate:
             assert area == 24
         else:
             assert area is None
@@ -78,13 +78,13 @@ def test_react_on_activate(kivy_runner, size_cls, react_on_activate):
         assert area == 12
 
 
-@pytest.mark.parametrize("react_on_activate", [False, True])
-def test_reentering_should_raise_exception(kivy_runner, size_cls, react_on_activate):
+@pytest.mark.parametrize("trigger_callback_on_activate", [False, True])
+def test_reentering_should_raise_exception(kivy_runner, size_cls, trigger_callback_on_activate):
     from kivy_garden.pyle import throttle_rule
 
     size = size_cls(width=4, height=6)
 
-    @throttle_rule(react_on_activate=react_on_activate)
+    @throttle_rule(trigger_callback_on_activate=trigger_callback_on_activate)
     def cm(dt, s=size):
         pass
 

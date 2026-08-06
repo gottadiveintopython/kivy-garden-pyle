@@ -103,17 +103,17 @@ def detect_dependencies(
     return dependencies
 
 
-def immediate_rule(callback=None, *, react_on_activate=False):
+def immediate_rule(callback=None, *, trigger_callback_on_activate=False):
     if callback is None:
-        return partial(ImmediateRule, react_on_activate)
+        return partial(ImmediateRule, trigger_callback_on_activate)
     else:
-        return ImmediateRule(react_on_activate, callback)
+        return ImmediateRule(trigger_callback_on_activate, callback)
 
 
 class ImmediateRule:
-    def __init__(self, react_on_activate, callback):
+    def __init__(self, trigger_callback_on_activate, callback):
         self._callback = callback
-        self.react_on_activate = react_on_activate
+        self.trigger_callback_on_activate = trigger_callback_on_activate
         self._deps = detect_dependencies(callback)
         self._unbind_uids = None
         self._active = False
@@ -124,7 +124,7 @@ class ImmediateRule:
         cb = self._callback
         self._unbind_uids = [owner.fbind(prop_name, cb) for owner, prop_name in self._deps]
         self._active = True
-        if self.react_on_activate:
+        if self.trigger_callback_on_activate:
             cb(None, None)
 
     def __exit__(self, *args):
@@ -135,16 +135,16 @@ class ImmediateRule:
         self._active = False
 
 
-def throttle_rule(callback=None, *, react_on_activate=True, delay=-1):
+def throttle_rule(callback=None, *, trigger_callback_on_activate=True, delay=-1):
     if callback is None:
-        return partial(ThrottleRule, delay, react_on_activate)
+        return partial(ThrottleRule, delay, trigger_callback_on_activate)
     else:
-        return ThrottleRule(delay, react_on_activate, callback)
+        return ThrottleRule(delay, trigger_callback_on_activate, callback)
 
 
 class ThrottleRule:
-    def __init__(self, delay, react_on_activate, callback):
-        self.react_on_activate = react_on_activate
+    def __init__(self, delay, trigger_callback_on_activate, callback):
+        self.trigger_callback_on_activate = trigger_callback_on_activate
         self._deps = detect_dependencies(callback)
         self._unbind_uids = None
         self._active = False
@@ -156,7 +156,7 @@ class ThrottleRule:
         t = self._trigger
         self._unbind_uids = [owner.fbind(prop_name, t) for owner, prop_name in self._deps]
         self._active = True
-        if self.react_on_activate:
+        if self.trigger_callback_on_activate:
             t()
 
     def __exit__(self, *args):
@@ -168,16 +168,16 @@ class ThrottleRule:
         self._active = False
 
 
-def debounce_rule(callback=None, *, react_on_activate=True, delay=1):
+def debounce_rule(callback=None, *, trigger_callback_on_activate=True, delay=1):
     if callback is None:
-        return partial(DebounceRule, delay, react_on_activate)
+        return partial(DebounceRule, delay, trigger_callback_on_activate)
     else:
-        return DebounceRule(delay, react_on_activate, callback)
+        return DebounceRule(delay, trigger_callback_on_activate, callback)
 
 
 class DebounceRule:
-    def __init__(self, delay, react_on_activate, callback):
-        self.react_on_activate = react_on_activate
+    def __init__(self, delay, trigger_callback_on_activate, callback):
+        self.trigger_callback_on_activate = trigger_callback_on_activate
         self._deps = detect_dependencies(callback)
         self._unbind_uids = None
         self._active = False
@@ -190,7 +190,7 @@ class DebounceRule:
         f = self._wrapper
         self._unbind_uids = [owner.fbind(prop_name, f) for owner, prop_name in self._deps]
         self._active = True
-        if self.react_on_activate:
+        if self.trigger_callback_on_activate:
             f()
 
     def __exit__(self, *args):
