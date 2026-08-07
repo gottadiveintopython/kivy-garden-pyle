@@ -122,36 +122,35 @@ def detect_dependencies(
     return dependencies
 
 
-def immediate_rule(callback=None, *, trigger_callback_on_activate=False):
-    if callback is None:
-        return partial(ImmediateRule, trigger_callback_on_activate)
-    else:
-        return ImmediateRule(trigger_callback_on_activate, callback)
-
-
-class ImmediateRule:
-    def __init__(self, trigger_callback_on_activate, callback):
-        self._callback = callback
+class RuleBase:
+    def __init__(self, trigger_callback_on_activate, original_callback, direct_callback=None):
         self.trigger_callback_on_activate = trigger_callback_on_activate
-        self._deps = detect_dependencies(callback)
-        self._unbind_uids = None
-        self._active = False
+        self.__callback = direct_callback or original_callback
+        self.__deps = detect_dependencies(original_callback)
+        self.__unbind_uids = None
+        self.__active = False
 
     def __enter__(self):
-        if self._active:
+        if self.__active:
             raise RecursiveActivationError
-        cb = self._callback
-        self._unbind_uids = [owner.fbind(prop_name, cb) for owner, prop_name in self._deps]
-        self._active = True
+        cb = self.__callback
+        self.__unbind_uids = [owner.fbind(prop_name, cb) for owner, prop_name in self.__deps]
+        self.__active = True
         if self.trigger_callback_on_activate:
             cb(None, None)
 
     def __exit__(self, *args):
-        if not self._active:
-            raise Exception("The rule is not active.")
-        for (owner, prop_name), uid in zip(self._deps, self._unbind_uids):
+        assert self.__active
+        for (owner, prop_name), uid in zip(self.__deps, self.__unbind_uids):
             owner.unbind_uid(prop_name, uid)
-        self._active = False
+        self.__active = False
+
+
+def immediate_rule(callback=None, *, trigger_callback_on_activate=False):
+    if callback is None:
+        return partial(RuleBase, trigger_callback_on_activate)
+    else:
+        return RuleBase(trigger_callback_on_activate, callback)
 
 
 def throttle_rule(callback=None, *, trigger_callback_on_activate=False, delay=-1):
@@ -161,30 +160,14 @@ def throttle_rule(callback=None, *, trigger_callback_on_activate=False, delay=-1
         return ThrottleRule(delay, trigger_callback_on_activate, callback)
 
 
-class ThrottleRule:
+class ThrottleRule(RuleBase):
     def __init__(self, delay, trigger_callback_on_activate, callback):
-        self.trigger_callback_on_activate = trigger_callback_on_activate
-        self._deps = detect_dependencies(callback)
-        self._unbind_uids = None
-        self._active = False
-        self._trigger = Clock.create_trigger(callback, delay)
-
-    def __enter__(self):
-        if self._active:
-            raise RecursiveActivationError
-        t = self._trigger
-        self._unbind_uids = [owner.fbind(prop_name, t) for owner, prop_name in self._deps]
-        self._active = True
-        if self.trigger_callback_on_activate:
-            t()
+        self._trigger = t = Clock.create_trigger(callback, delay)
+        super().__init__(trigger_callback_on_activate, callback, t)
 
     def __exit__(self, *args):
-        if not self._active:
-            raise Exception("The rule is not active.")
-        for (owner, prop_name), uid in zip(self._deps, self._unbind_uids):
-            owner.unbind_uid(prop_name, uid)
         self._trigger.cancel()
-        self._active = False
+        return super().__exit__(*args)
 
 
 def debounce_rule(callback=None, *, trigger_callback_on_activate=False, delay=1):
@@ -194,33 +177,16 @@ def debounce_rule(callback=None, *, trigger_callback_on_activate=False, delay=1)
         return DebounceRule(delay, trigger_callback_on_activate, callback)
 
 
-class DebounceRule:
-    def __init__(self, delay, trigger_callback_on_activate, callback):
-        self.trigger_callback_on_activate = trigger_callback_on_activate
-        self._deps = detect_dependencies(callback)
-        self._unbind_uids = None
-        self._active = False
-        self._trigger = t = Clock.create_trigger(callback, delay)
-        self._wrapper = partial(self._wrapper, t)
+def _restart_trigger(trigger, *args):
+    trigger.cancel()
+    trigger()
 
-    def __enter__(self):
-        if self._active:
-            raise RecursiveActivationError
-        f = self._wrapper
-        self._unbind_uids = [owner.fbind(prop_name, f) for owner, prop_name in self._deps]
-        self._active = True
-        if self.trigger_callback_on_activate:
-            f()
+
+class DebounceRule(RuleBase):
+    def __init__(self, delay, trigger_callback_on_activate, callback):
+        self._trigger = t = Clock.create_trigger(callback, delay)
+        super().__init__(trigger_callback_on_activate, callback, partial(_restart_trigger, t))
 
     def __exit__(self, *args):
-        if not self._active:
-            raise Exception("The rule is not active.")
-        for (owner, prop_name), uid in zip(self._deps, self._unbind_uids):
-            owner.unbind_uid(prop_name, uid)
         self._trigger.cancel()
-        self._active = False
-
-    @staticmethod
-    def _wrapper(trigger, *args):
-        trigger.cancel()
-        trigger()
+        return super().__exit__(*args)
