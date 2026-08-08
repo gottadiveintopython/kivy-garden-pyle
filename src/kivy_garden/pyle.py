@@ -145,6 +145,26 @@ class RuleBase:
             owner.unbind_uid(prop_name, uid)
         self.__active = False
 
+    def add_dependency(self, owner: EventDispatcher, prop_or_event: str):
+        dep = (owner, prop_or_event)
+        if dep in self.__deps:
+            return
+        self.__deps.append(dep)
+        if self.__active:
+            self.__unbind_uids.append(owner.fbind(prop_or_event, self.__callback))
+
+    def remove_dependency(self, owner: EventDispatcher, prop_or_event: str):
+        dep = (owner, prop_or_event)
+        deps = self.__deps
+        if dep not in deps:
+            return
+        if self.__active:
+            idx = deps.index(dep)
+            deps.pop(idx)
+            owner.unbind_uid(prop_or_event, self.__unbind_uids.pop(idx))
+        else:
+            deps.remove(dep)
+
 
 def immediate_rule(callback=None, *, trigger_callback_on_activate=False):
     if callback is None:
