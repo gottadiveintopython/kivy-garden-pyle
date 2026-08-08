@@ -1,6 +1,6 @@
 [project]
 name = "kivy-garden-pyle"
-version = "0.0.1"
+version = "0.1.0"
 description = "Helps create Kivy bindings in Python"
 license = "MIT"
 authors = [{ name = "Nattōsai Mitō", email = "flow4re2c@gmail.com" }]
