@@ -2,6 +2,8 @@
 
 [日本語版](https://github.com/gottadiveintopython/kivy-garden-pyle/blob/main/README-ja.md)
 
+![project logo](misc/ai-generated-logo-02.png)
+
 `pyle` is an experimental library aimed at reducing the boilerplate needed to create Kivy bindings without using the Kv language.
 
 For example, suppose you want a function that adds a solid-color background to a specific `Widget` instance and provides a way to revert it.
@@ -73,29 +75,20 @@ def add_solid_background(widget, *, color=(1., 1. , 1., .3)):
 
 As you can see, the binding code becomes much cleaner.
 And of course, if you are using an async library,
-you may want to implement the feature as an async function,
-tying the background's lifetime to the coroutine it returns:
+you may want to implement the feature as a context manager:
 
 ```python
-from contextlib import ExitStack
+from contextlib import ExitStack, contextmanager
 
-import asynckivy as ak
 from kivy.graphics import Color, Rectangle
 
 from kivy_garden import pyle
 
 
-async def enable_solid_background(widget, *, color=(1., 1. , 1., .3)):
-	'''
-	Enables a solid-color background for a widget until the returned coroutine is cancelled.
-	'''
+@contextmanager
+def add_solid_background(widget, *, color=(1., 1. , 1., .3)):
 	with ExitStack() as stack:
-		defer = stack.callback
-
-		before = widget.canvas.before
-		with before:
-			defer(before.remove, Color(*color))
-			defer(before.remove, rect := Rectangle(pos=widget.pos, size=widget.size))
+		# omitted for brevity
 
 		@pyle.throttle_rule
 		def sync_graphics(dt, rect=rect, w=widget):
@@ -103,7 +96,7 @@ async def enable_solid_background(widget, *, color=(1., 1. , 1., .3)):
 			rect.size = w.size
 		stack.enter_context(sync_graphics)
 
-		await ak.sleep_forever()
+		yield
 ```
 
 In the examples above, the `@pyle.throttle_rule` decorator turns `sync_graphics` into a context manager.
@@ -122,6 +115,14 @@ with sync_graphics:
     ...
 with sync_graphics:
     ...
+```
+
+## Installation
+
+Pin the minor version.
+
+```
+pip install "kivy-garden-pyle>=0.1,<0.2"
 ```
 
 ## How does it know which Kivy properties should be observed?

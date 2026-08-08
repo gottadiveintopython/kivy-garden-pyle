@@ -1,5 +1,8 @@
 # kivy-garden-pyle
 
+[English version](README.md)
+![project logo](misc/ai-generated-logo-02.png)
+
 `pyle` はKv言語を用いずにPythonだけでバインディングを構築する際の手間を減らす事を目的とした実験段階のライブラリです。
 
 例えば特定のWidgetのインスタンスに単色背景を与える機能とそれを元に戻す機能が欲しかったとします。
@@ -70,42 +73,28 @@ def add_solid_background(widget, *, color=(1., 1. , 1., .3)):
 ```
 
 このようにバインディング周りのコードがスッキリします。
-またasyncライブラリを用いている場合はasync関数として実装してコルーチンの生存期間をそのまま効能期間とする、
-次のような実装が良いかもしれません。
+もちろんasyncライブラリを用いているなら次のようにコンテキストマネージャーとして実装した方が使いやすいでしょう。
 
 ```python
-from contextlib import ExitStack
+from contextlib import ExitStack, contextmanager
 
-import asynckivy as ak
 from kivy.graphics import Color, Rectangle
 
 from kivy_garden import pyle
 
 
-async def enable_solid_background(widget, *, color=(1., 1. , 1., .3)):
-    '''
-    コルーチンが終了するまでwidgetに単色背景を与える。
-    '''
+@contextmanager
+def add_solid_background(widget, *, color=(1., 1. , 1., .3)):
     with ExitStack() as stack:
-        defer = stack.callback
+        # 省略
 
-        before = widget.canvas.before
-        with before:
-            defer(before.remove, Color(*color))
-            defer(before.remove, rect := Rectangle(pos=widget.pos, size=widget.size))
-
-        @pyle.throttle_rule
-        def sync_graphics(dt, rect=rect, w=widget):
-            rect.pos = w.pos
-            rect.size = w.size
         stack.enter_context(sync_graphics)
-
-        await ak.sleep_forever()
+        yield
 ```
 
-上記の例らにおける `sync_graphics` 関数は `@pyle.throttle_rule` で飾られた事によってコンテキストマネージャー(長いので以後はcmと略す)と化します。
-このcmが作られた段階ではまだバインディングは有効になっておらず、活動中(`__enter__`から`__exit__`まで)のみ有効になります。
-このcmは再帰的に`__enter__`できませんが再利用は可能です。
+上記の例らにおける `sync_graphics` 関数は `@pyle.throttle_rule` によってコンテキストマネージャー(長いので以後はcmと略す)と化しています。
+cmが作られた段階ではまだバインディングは有効になっておらず、`__enter__`〜`__exit__`間のみ有効になります。
+またcmは再帰的に`__enter__`できませんが、`__exit__`後に再び`__enter__`することは可能です。
 
 ```python
 # 再帰は駄目
@@ -120,7 +109,7 @@ with sync_graphics:
     ...
 ```
 
-## どのようにして監視すべきKivyプロパティを検出するのか
+## このライブラリはどのようにして監視すべきKivyプロパティを検出しているのか
 
 関数のバイトコードを解析しています。
 関数の **あらかじめ埋められた** 引数に`EventDispatcher`のインスタンスがある時、
