@@ -2,11 +2,13 @@
 
 [日本語版](https://github.com/gottadiveintopython/kivy-garden-pyle/blob/main/README-ja.md)
 
-![project logo](misc/ai-generated-logo-02.png)
+<div style="text-align: center">
+<img src="misc/ai-generated-logo-02.png" width="50%" alt="project logo"/>
+</div>
 
 `pyle` is an experimental library aimed at reducing the boilerplate needed to create Kivy bindings without using the Kv language.
 
-For example, suppose you want a function that adds a solid-color background to a specific `Widget` instance and provides a way to revert it.
+For example, suppose you want a function that adds a solid-color background to a specific `Widget` instance as well as the way to revert it.
 Your code might look like this:
 
 
@@ -73,7 +75,7 @@ def add_solid_background(widget, *, color=(1., 1. , 1., .3)):
 		return stack.pop_all().close
 ```
 
-As you can see, the binding code becomes much cleaner.
+As you can see, the binding code becomes cleaner.
 And of course, if you are using an async library,
 you may want to implement the feature as a context manager:
 

@@ -1,7 +1,10 @@
 # kivy-garden-pyle
 
 [English version](README.md)
-![project logo](misc/ai-generated-logo-02.png)
+
+<div style="text-align: center">
+<img src="misc/ai-generated-logo-02.png" width="50%" alt="project logo"/>
+</div>
 
 `pyle` はKv言語を用いずにPythonだけでバインディングを構築する際の手間を減らす事を目的とした実験段階のライブラリです。
 
