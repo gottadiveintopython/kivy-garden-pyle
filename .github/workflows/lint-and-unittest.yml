@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  kivy_3_0_dev:
+  unittest-on-latest-stable-kivy:
     runs-on: ubuntu-latest
     strategy:
       matrix:
