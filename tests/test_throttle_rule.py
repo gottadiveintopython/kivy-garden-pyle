@@ -51,15 +51,15 @@ def test_no_arg(kivy_runner, size_cls):
     assert area == 6
 
 
-@pytest.mark.parametrize("trigger_callback_on_activate", [False, True])
-def test_trigger_callback_on_activate(kivy_runner, size_cls, trigger_callback_on_activate):
+@pytest.mark.parametrize("eager", [False, True])
+def test_eager(kivy_runner, size_cls, eager):
     from kivy_garden.pyle import throttle_rule
     af = kivy_runner.advance_frame
 
     area = None
     size = size_cls(width=4, height=6)
 
-    @throttle_rule(trigger_callback_on_activate=trigger_callback_on_activate)
+    @throttle_rule(eager=eager)
     def keep_updating_area(dt, s=size):
         nonlocal area
         area = s.width * s.height
@@ -67,12 +67,12 @@ def test_trigger_callback_on_activate(kivy_runner, size_cls, trigger_callback_on
     with keep_updating_area:
         assert area is None
         af()
-        if trigger_callback_on_activate:
+        if eager:
             assert area == 24
         else:
             assert area is None
         size.width = 2
-        if trigger_callback_on_activate:
+        if eager:
             assert area == 24
         else:
             assert area is None
@@ -80,13 +80,13 @@ def test_trigger_callback_on_activate(kivy_runner, size_cls, trigger_callback_on
         assert area == 12
 
 
-@pytest.mark.parametrize("trigger_callback_on_activate", [False, True])
-def test_reentering_should_raise_exception(kivy_runner, size_cls, trigger_callback_on_activate):
+@pytest.mark.parametrize("eager", [False, True])
+def test_reentering_should_raise_exception(kivy_runner, size_cls, eager):
     from kivy_garden import pyle
 
     size = size_cls(width=4, height=6)
 
-    @pyle.throttle_rule(trigger_callback_on_activate=trigger_callback_on_activate)
+    @pyle.throttle_rule(eager=eager)
     def cm(dt, s=size):
         pass
 
@@ -103,7 +103,7 @@ def test_throttle_behavior(kivy_runner, size_cls):
     area = None
     size = size_cls(width=4, height=6)
 
-    @throttle_rule(delay=1, trigger_callback_on_activate=True)
+    @throttle_rule(delay=1, eager=True)
     def keep_updating_area(dt, s=size):
         nonlocal area
         area = s.width * s.height
