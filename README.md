@@ -124,7 +124,7 @@ with sync_graphics:
 Pin the minor version.
 
 ```
-pip install "kivy-garden-pyle>=0.1,<0.2"
+pip install "kivy-garden-pyle>=0.2,<0.3"
 ```
 
 ## How does it know which Kivy properties should be observed?
