@@ -37,20 +37,20 @@ def test_no_arg(size_cls):
         assert area == 6
 
 
-@pytest.mark.parametrize("trigger_callback_on_activate", [False, True])
-def test_trigger_callback_on_activate(size_cls, trigger_callback_on_activate):
+@pytest.mark.parametrize("eager", [False, True])
+def test_eager(size_cls, eager):
     from kivy_garden.pyle import immediate_rule
 
     area = None
     size = size_cls(width=4, height=6)
 
-    @immediate_rule(trigger_callback_on_activate=trigger_callback_on_activate)
+    @immediate_rule(eager=eager)
     def keep_updating_area(_1, _2, s=size):
         nonlocal area
         area = s.width * s.height
 
     with keep_updating_area:
-        if trigger_callback_on_activate:
+        if eager:
             assert area == 24
         else:
             assert area is None
@@ -63,19 +63,19 @@ def test_trigger_callback_on_activate(size_cls, trigger_callback_on_activate):
     assert area == 6
 
     with keep_updating_area:
-        if trigger_callback_on_activate:
+        if eager:
             assert area == 300
         else:
             assert area == 6
 
 
-@pytest.mark.parametrize("trigger_callback_on_activate", [False, True])
-def test_reentering_should_raise_exception(size_cls, trigger_callback_on_activate):
+@pytest.mark.parametrize("eager", [False, True])
+def test_reentering_should_raise_exception(size_cls, eager):
     from kivy_garden import pyle
 
     size = size_cls(width=4, height=6)
 
-    @pyle.immediate_rule(trigger_callback_on_activate=trigger_callback_on_activate)
+    @pyle.immediate_rule(eager=eager)
     def cm(_1, _2, s=size):
         pass
 

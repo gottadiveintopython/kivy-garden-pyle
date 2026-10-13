@@ -123,8 +123,8 @@ def detect_dependencies(
 
 
 class RuleBase:
-    def __init__(self, trigger_callback_on_activate, original_callback, direct_callback=None):
-        self.trigger_callback_on_activate = trigger_callback_on_activate
+    def __init__(self, eager, original_callback, direct_callback=None):
+        self.eager = eager
         self.__callback = direct_callback or original_callback
         self.__deps = detect_dependencies(original_callback)
         self.__unbind_uids = None
@@ -136,7 +136,7 @@ class RuleBase:
         cb = self.__callback
         self.__unbind_uids = [owner.fbind(prop_name, cb) for owner, prop_name in self.__deps]
         self.__active = True
-        if self.trigger_callback_on_activate:
+        if self.eager:
             cb(None, None)
 
     def __exit__(self, *args):
@@ -166,35 +166,35 @@ class RuleBase:
             deps.remove(dep)
 
 
-def immediate_rule(callback=None, *, trigger_callback_on_activate=False):
+def immediate_rule(callback=None, *, eager=False):
     if callback is None:
-        return partial(RuleBase, trigger_callback_on_activate)
+        return partial(RuleBase, eager)
     else:
-        return RuleBase(trigger_callback_on_activate, callback)
+        return RuleBase(eager, callback)
 
 
-def throttle_rule(callback=None, *, trigger_callback_on_activate=False, delay=-1):
+def throttle_rule(callback=None, *, eager=False, delay=-1):
     if callback is None:
-        return partial(ThrottleRule, delay, trigger_callback_on_activate)
+        return partial(ThrottleRule, delay, eager)
     else:
-        return ThrottleRule(delay, trigger_callback_on_activate, callback)
+        return ThrottleRule(delay, eager, callback)
 
 
 class ThrottleRule(RuleBase):
-    def __init__(self, delay, trigger_callback_on_activate, callback):
+    def __init__(self, delay, eager, callback):
         self._trigger = t = Clock.create_trigger(callback, delay)
-        super().__init__(trigger_callback_on_activate, callback, t)
+        super().__init__(eager, callback, t)
 
     def __exit__(self, *args):
         self._trigger.cancel()
         return super().__exit__(*args)
 
 
-def debounce_rule(callback=None, *, trigger_callback_on_activate=False, delay=1):
+def debounce_rule(callback=None, *, eager=False, delay=1):
     if callback is None:
-        return partial(DebounceRule, delay, trigger_callback_on_activate)
+        return partial(DebounceRule, delay, eager)
     else:
-        return DebounceRule(delay, trigger_callback_on_activate, callback)
+        return DebounceRule(delay, eager, callback)
 
 
 def _restart_trigger(trigger, *args):
@@ -203,9 +203,9 @@ def _restart_trigger(trigger, *args):
 
 
 class DebounceRule(RuleBase):
-    def __init__(self, delay, trigger_callback_on_activate, callback):
+    def __init__(self, delay, eager, callback):
         self._trigger = t = Clock.create_trigger(callback, delay)
-        super().__init__(trigger_callback_on_activate, callback, partial(_restart_trigger, t))
+        super().__init__(eager, callback, partial(_restart_trigger, t))
 
     def __exit__(self, *args):
         self._trigger.cancel()
