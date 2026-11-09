@@ -147,8 +147,8 @@ For more details, please see [test_detect_dependencies.py][test_detect_dependenc
 - CPython 3.11 + Kivy 2.3.1
 - CPython 3.12 + Kivy 2.3.1
 - CPython 3.13 + Kivy 2.3.1
-- CPython 3.14 + Kivy [`be90b9f`][be90b9f]
+- CPython 3.14 + Kivy [`c8e1f5f`][c8e1f5f]
 
 [test_detect_dependencies]:https://github.com/gottadiveintopython/kivy-garden-pyle/blob/main/tests/test_detect_dependencies.py
 [LOAD_ATTR]:https://docs.python.org/3/library/dis.html#opcode-LOAD_ATTR
-[be90b9f]:https://github.com/kivy/kivy/tree/be90b9f4bdb28c734e1cc01d6e7a7e1440e5216e
+[c8e1f5f]:https://github.com/kivy/kivy/tree/c8e1f5f25802924e92f4f7f41851c9669778359e
