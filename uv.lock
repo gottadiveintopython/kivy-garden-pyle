@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.11"
 
 [[package]]
@@ -133,7 +133,7 @@ wheels = [
 [[package]]
 name = "kivy"
 version = "3.0.0.dev0"
-source = { git = "https://github.com/kivy/kivy?rev=be90b9f4bdb28c734e1cc01d6e7a7e1440e5216e#be90b9f4bdb28c734e1cc01d6e7a7e1440e5216e" }
+source = { git = "https://github.com/kivy/kivy?rev=c8e1f5f25802924e92f4f7f41851c9669778359e#c8e1f5f25802924e92f4f7f41851c9669778359e" }
 dependencies = [
     { name = "docutils" },
     { name = "filetype" },
@@ -194,7 +194,7 @@ wheels = [
 
 [[package]]
 name = "kivy-garden-pyle"
-version = "0.2.0"
+version = "0.2.1.dev0"
 source = { editable = "." }
 
 [package.dev-dependencies]
@@ -207,7 +207,7 @@ dev = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "kivy", git = "https://github.com/kivy/kivy?rev=be90b9f4bdb28c734e1cc01d6e7a7e1440e5216e" },
+    { name = "kivy", git = "https://github.com/kivy/kivy?rev=c8e1f5f25802924e92f4f7f41851c9669778359e" },
     { name = "pytest", specifier = ">=9.1.1" },
 ]
 
