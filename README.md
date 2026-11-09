@@ -20,26 +20,26 @@ from kivy.clock import Clock
 
 
 def add_solid_background(widget, *, color=(1., 1. , 1., .3)):
-	'''
-	Adds a solid-color background to widget and returns a function that reverts it.
-	'''
-	with ExitStack() as stack:
-		defer = stack.callback
+    '''
+    Adds a solid-color background to widget and returns a function that reverts it.
+    '''
+    with ExitStack() as stack:
+        defer = stack.callback
 
-		before = widget.canvas.before
-		with before:
-			defer(before.remove, Color(*color))
-			defer(before.remove, rect := Rectangle(pos=widget.pos, size=widget.size))
+        before = widget.canvas.before
+        with before:
+            defer(before.remove, Color(*color))
+            defer(before.remove, rect := Rectangle(pos=widget.pos, size=widget.size))
 
-		def sync_graphics(dt, rect=rect, w=widget):
-			rect.pos = w.pos
-			rect.size = w.size
-		t = Clock.create_trigger(sync_graphics, -1)
-		defer(t.cancel)
-		widget.bind(pos=t, size=t)
-		defer(widget.unbind, pos=t, size=t)
+        def sync_graphics(dt):
+            rect.pos = widget.pos
+            rect.size = widget.size
+        t = Clock.create_trigger(sync_graphics, -1)
+        defer(t.cancel)
+        widget.bind(pos=t, size=t)
+        defer(widget.unbind, pos=t, size=t)
 
-		return stack.pop_all().close
+        return stack.pop_all().close
 
 
 revert = add_solid_background(widget)
@@ -58,21 +58,21 @@ from kivy_garden import pyle
 
 
 def add_solid_background(widget, *, color=(1., 1. , 1., .3)):
-	with ExitStack() as stack:
-		defer = stack.callback
+    with ExitStack() as stack:
+        defer = stack.callback
 
-		before = widget.canvas.before
-		with before:
-			defer(before.remove, Color(*color))
-			defer(before.remove, rect := Rectangle(pos=widget.pos, size=widget.size))
+        before = widget.canvas.before
+        with before:
+            defer(before.remove, Color(*color))
+            defer(before.remove, rect := Rectangle(pos=widget.pos, size=widget.size))
 
-		@pyle.throttle_rule
-		def sync_graphics(dt, rect=rect, w=widget):
-			rect.pos = w.pos
-			rect.size = w.size
-		stack.enter_context(sync_graphics)
+        @pyle.throttle_rule(delay=-1)
+        def sync_graphics(dt, rect=rect, w=widget):
+            rect.pos = w.pos
+            rect.size = w.size
+        stack.enter_context(sync_graphics)
 
-		return stack.pop_all().close
+        return stack.pop_all().close
 ```
 
 As you can see, the binding code becomes cleaner.
@@ -89,16 +89,16 @@ from kivy_garden import pyle
 
 @contextmanager
 def add_solid_background(widget, *, color=(1., 1. , 1., .3)):
-	with ExitStack() as stack:
-		# omitted for brevity
+    with ExitStack() as stack:
+        # omitted for brevity
 
-		@pyle.throttle_rule
-		def sync_graphics(dt, rect=rect, w=widget):
-			rect.pos = w.pos
-			rect.size = w.size
-		stack.enter_context(sync_graphics)
+        @pyle.throttle_rule
+        def sync_graphics(dt, rect=rect, w=widget):
+            rect.pos = w.pos
+            rect.size = w.size
+        stack.enter_context(sync_graphics)
 
-		yield
+        yield
 ```
 
 In the examples above, the `@pyle.throttle_rule` decorator turns `sync_graphics` into a context manager.
